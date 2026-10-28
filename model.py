@@ -6,7 +6,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 # wczytujemy dane z policzonym elo
 df = pd.read_csv("wyniki/dane_z_elo.csv")
 df["data"] = pd.to_datetime(df["data"])
-df = df.sort_values("data")
+df = df.sort_values(["data", "runda_nr"], kind="stable")
 
 # potrzebujemy rankingu ATP wiec usuwamy mecze bez niego
 df = df.dropna(subset=["winner_rank", "loser_rank", "winner_ht", "loser_ht"])

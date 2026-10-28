@@ -47,15 +47,27 @@ print("Brakujące kolumny:", brakujace)
 # zamieniamy date turnieju na prawdziwa date
 df["data"] = pd.to_datetime(df["tourney_date"], format="%Y%m%d")
 
-# sortujemy mecze od najstarszego do najnowszego
-df = df.sort_values("data")
+# kolejnosc rund - mecze jednego turnieju maja te sama date, wiec bez tego
+# final moglby sie policzyc przed pierwsza runda
+KOLEJNOSC_RUND = {"RR": 0, "R128": 1, "R64": 2, "R32": 3, "R16": 4, "QF": 5,
+                  "SF": 6, "BR": 6, "F": 7,
+                  "1st Round": 2, "2nd Round": 3, "3rd Round": 4, "4th Round": 5,
+                  "Quarterfinals": 6, "Semifinals": 7, "The Final": 8, "Round Robin": 0}
+df["runda_nr"] = df["round"].map(KOLEJNOSC_RUND).fillna(0)
+
+# sortujemy od najstarszego do najnowszego (kind="stable" - bez losowania kolejnosci)
+df = df.sort_values(["data", "runda_nr"], kind="stable")
 
 # usuwamy mecze przerwane: krecz, walkower, dyskwalifikacja
 df["score"] = df["score"].astype(str)
 df = df[~df["score"].str.contains("RET|W/O|DEF", na=False)]
 print("Po usunięciu kreczów:", len(df))
 
-# usuwamy mecze bez statystyk serwisu
+# kopia wszystkich ukonczonych meczow - dla Elo i modelu zwyciezcy
+# (nie potrzebuja statystyk serwisu, a nowe zrodla ich zwykle nie maja)
+df_wszystkie = df.copy()
+
+# usuwamy mecze bez statystyk serwisu (dla modelu asow i stylow gry)
 statystyki = ["w_ace", "l_ace", "w_df", "l_df", "w_svpt", "l_svpt", "w_1stIn", "l_1stIn"]
 df = df.dropna(subset=statystyki)
 print("Po usunięciu braków w statystykach:", len(df))
@@ -78,6 +90,14 @@ df["bledy_przegrany"] = df["l_df"] / df["l_svpt"] * 100
 # procent trafionych pierwszych serwisow
 df["pierwszy_zwyciezca"] = df["w_1stIn"] / df["w_svpt"] * 100
 df["pierwszy_przegrany"] = df["l_1stIn"] / df["l_svpt"] * 100
+
+# te same kolumny liczymy dla wszystkich meczow (tam gdzie brak statystyk wyjdzie NaN)
+for nowa, licznik, mianownik in [("asy_zwyciezca", "w_ace", "w_svpt"), ("asy_przegrany", "l_ace", "l_svpt"),
+                                 ("bledy_zwyciezca", "w_df", "w_svpt"), ("bledy_przegrany", "l_df", "l_svpt"),
+                                 ("pierwszy_zwyciezca", "w_1stIn", "w_svpt"), ("pierwszy_przegrany", "l_1stIn", "l_svpt")]:
+    df_wszystkie[nowa] = (df_wszystkie[licznik] / df_wszystkie[mianownik] * 100).replace([float("inf")], float("nan"))
+df_wszystkie.to_csv("wyniki/dane_mecze.csv", index=False)
+print("Zapisano wyniki/dane_mecze.csv -", len(df_wszystkie), "meczów (część bez statystyk serwisu)")
 
 # --- KROK 5: PODSUMOWANIE I ZAPIS ---
 

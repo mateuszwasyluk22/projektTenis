@@ -296,7 +296,7 @@ with kol1:
         st.metric("Ranking ATP", info_a["ranking"])
     pokaz_elo(gracz_a, elo_a)
     st.metric("Forma", str(info_a["wygrane"]) + " / " + str(info_a["z_ilu"]) + " ostatnich")
-    st.metric("Prognoza asów w meczu", round(asy_mecz_a, 1))
+    st.metric("Prognoza asów w meczu", "brak danych" if pd.isna(asy_mecz_a) else round(asy_mecz_a, 1))
     st.write("**Role:** " + str(info_a["role"]))
     if info_a["styl_glowny"] is not None:
         st.caption("Przynależność: " + info_a["styl_glowny"] + " "
@@ -310,7 +310,7 @@ with kol2:
         st.metric("Ranking ATP", info_b["ranking"])
     pokaz_elo(gracz_b, elo_b)
     st.metric("Forma", str(info_b["wygrane"]) + " / " + str(info_b["z_ilu"]) + " ostatnich")
-    st.metric("Prognoza asów w meczu", round(asy_mecz_b, 1))
+    st.metric("Prognoza asów w meczu", "brak danych" if pd.isna(asy_mecz_b) else round(asy_mecz_b, 1))
     st.write("**Role:** " + str(info_b["role"]))
     if info_b["styl_glowny"] is not None:
         st.caption("Przynależność: " + info_b["styl_glowny"] + " "
@@ -423,8 +423,8 @@ with z1:
             "Nawierzchnia": ostatnie["nawierzchnia"],
             "Przeciwnik": ostatnie["przeciwnik"],
             "Wynik": ostatnie["wynik"],
-            "Asy": ostatnie["asy_surowe"].astype(int),
-            "Podwójne błędy": ostatnie["bledy_surowe"].astype(int),
+            "Asy": ostatnie["asy_surowe"].astype("Int64"),
+            "Podwójne błędy": ostatnie["bledy_surowe"].astype("Int64"),
             "Asy /100 pkt": ostatnie["asy"].round(1),
             "Błędy /100 pkt": ostatnie["bledy"].round(1)
         })
@@ -537,8 +537,8 @@ with z2:
             "Nawierzchnia": wszystkie["nawierzchnia"],
             "Wygrał": wszystkie["wygral"],
             "Wynik": wszystkie["wynik"],
-            "Asy " + gracz_a: wszystkie["asy_a_surowe"].astype(int),
-            "Asy " + gracz_b: wszystkie["asy_b_surowe"].astype(int)
+            "Asy " + gracz_a: wszystkie["asy_a_surowe"].astype("Int64"),
+            "Asy " + gracz_b: wszystkie["asy_b_surowe"].astype("Int64")
         }).iloc[::-1], hide_index=True)
 
 

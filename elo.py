@@ -6,11 +6,11 @@ import os
 os.makedirs("wyniki", exist_ok=True)
 
 # wczytujemy oczyszczone dane
-df = pd.read_csv("wyniki/dane_czyste.csv")
+df = pd.read_csv("wyniki/dane_mecze.csv")
 
 # upewniamy sie ze mecze sa po kolei w czasie
 df["data"] = pd.to_datetime(df["data"])
-df = df.sort_values("data")
+df = df.sort_values(["data", "runda_nr"], kind="stable")
 print("Meczów do policzenia:", len(df))
 
 # kazdy zawodnik startuje z 1500 punktami
